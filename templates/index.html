@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Recommendation System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #818cf8;
+            --primary-dark: #6366f1;
+            --bg: #020617;
+            --card-bg: rgba(15, 23, 42, 0.7);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #c084fc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            background-image: linear-gradient(rgba(2, 6, 23, 0.4), rgba(2, 6, 23, 0.4)), url('/static/back3.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('/static/mback1.jpg');
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 1;
+            animation: grain 8s steps(10) infinite;
+        }
+
+        @keyframes grain {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            10% {
+                transform: translate(-5%, -5%);
+            }
+
+            20% {
+                transform: translate(-10%, 5%);
+            }
+
+            30% {
+                transform: translate(5%, -10%);
+            }
+
+            40% {
+                transform: translate(-5%, 15%);
+            }
+
+            50% {
+                transform: translate(-10%, 5%);
+            }
+
+            60% {
+                transform: translate(15%, 0);
+            }
+
+            70% {
+                transform: translate(0, 10%);
+            }
+
+            80% {
+                transform: translate(-15%, 0);
+            }
+
+            90% {
+                transform: translate(10%, 5%);
+            }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+            z-index: 2;
+            animation: fadeIn 1s ease-out;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3.5rem;
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #818cf8, #c084fc, #818cf8);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            animation: shine 4s linear infinite;
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        .search-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            padding: 2.5rem;
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin-bottom: 3rem;
+            display: flex;
+            gap: 1rem;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .search-box:focus-within {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        input {
+            flex: 1;
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.25rem 1.75rem;
+            color: white;
+            font-size: 1.1rem;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(2, 6, 23, 0.8);
+            box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.2);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            border-radius: 16px;
+            padding: 1.25rem 2.5rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: inherit;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 25px -5px rgba(129, 140, 248, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0) scale(1);
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .movie-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            padding: 1.5rem 2.5rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            opacity: 0;
+            transform: translateY(30px);
+            cursor: default;
+        }
+
+        .movie-card:hover {
+            background: rgba(30, 41, 59, 0.8);
+            transform: translateX(15px) scale(1.02);
+            border-color: var(--accent);
+            box-shadow: -10px 0 20px -10px var(--accent);
+        }
+
+        .movie-rank {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--accent);
+            min-width: 50px;
+            font-style: italic;
+        }
+
+        .movie-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+
+        .decoration {
+            position: fixed;
+            font-size: 2rem;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: 0;
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            from {
+                transform: translateY(110vh) rotate(0deg);
+            }
+
+            to {
+                transform: translateY(-10vh) rotate(360deg);
+            }
+        }
+
+        .loader {
+            display: none;
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-top: 5px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+            margin: 3rem auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-message {
+            color: #fca5a5;
+            background: rgba(239, 68, 68, 0.15);
+            padding: 1.25rem;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            display: none;
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Floating Movie-themed Decorations -->
+    <div class="decoration" style="left: 5%; animation-duration: 25s; font-size: 3rem;">🎬</div>
+    <div class="decoration" style="left: 15%; animation-duration: 18s; animation-delay: -2s;">🍿</div>
+    <div class="decoration" style="left: 85%; animation-duration: 22s; animation-delay: -5s; font-size: 2.5rem;">🎥
+    </div>
+    <div class="decoration" style="left: 75%; animation-duration: 15s; animation-delay: -10s;">🎟️</div>
+    <div class="decoration"
+        style="left: 45%; animation-duration: 30s; animation-delay: -7s; font-size: 4rem; opacity: 0.05;">📼</div>
+
+    <div class="container">
+        <header>
+            <h1>MovieMatch</h1>
+            <p class="subtitle">Discover your next favorite movie </p>
+        </header>
+
+        <div class="error-message" id="error"></div>
+
+        <form class="search-box" id="recommendation-form">
+            <input type="text" name="movie_name" id="movie_name"
+                placeholder="Enter a movie you love (e.g. Iron Man, Inception)..." required>
+            <button type="submit">Get Movie</button>
+        </form>
+
+        <div class="loader" id="loader"></div>
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('recommendation-form');
+        const resultsDiv = document.getElementById('results');
+        const loader = document.getElementById('loader');
+        const errorDiv = document.getElementById('error');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const movieName = document.getElementById('movie_name').value;
+
+            // UI State
+            resultsDiv.innerHTML = '';
+            errorDiv.style.display = 'none';
+            loader.style.display = 'block';
+
+            try {
+                const formData = new FormData();
+                formData.append('movie_name', movieName);
+
+                const response = await fetch('/recommend', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    data.recommendations.forEach((movie, index) => {
+                        const card = document.createElement('div');
+                        card.className = 'movie-card';
+                        card.style.animation = `slideIn 0.5s ease-out ${index * 0.1}s forwards`;
+                        card.innerHTML = `
+                            <div class="movie-rank">${index + 1}</div>
+                            <div class="movie-title">${movie}</div>
+                        `;
+                        resultsDiv.appendChild(card);
+                    });
+                } else {
+                    errorDiv.textContent = data.error || 'Something went wrong';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Failed to connect to the server';
+                errorDiv.style.display = 'block';
+            } finally {
+                loader.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+
+</html>
